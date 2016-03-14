@@ -2,10 +2,10 @@
 # Copyright (c) 2016 Nicholas Dimitroff Williams
 #
 # Released under The MIT License, see file LICENSE for text
-
+#
 
 namespace eval ::epg:: { 
- set version 0.0.0
+ set version 0.0.1
  set one "hello"
 
 set exampleBinary "11100000111000001110000011100000111000001110000011100000111000"
@@ -81,11 +81,17 @@ proc ::epg::help {} {
 }
 
 
+#
+# ::epg::validateBinary
+# in: one string
+# out: 1 if that string is 62 digits of 1 and 0. otherwise: 0.
+#
+
 proc ::epg::validateBinary {binary} {
  if {[regexp {^[10]{62}$} $binary]} {
   return 1
  } else { 
-  return -code error "string is not valid binary string" 
+  return 0
  }
 }
 
@@ -122,7 +128,7 @@ proc ::epg::percentClosure {binary} {
 # puts $len
  set m [expr {($sum * 1.0) / ($len * 1.0)}]
  set n [expr {round($m*100)}]
- return "$n %" 
+ return $n 
 }
 
 proc ::epg::maxClosure {place binary} {
@@ -134,7 +140,6 @@ proc ::epg::centerOfGravity {area} {
 
 
 #------------ HOUSEKEEPING
-
 
 package provide epg $epg::version
 
