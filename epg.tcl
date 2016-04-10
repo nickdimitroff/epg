@@ -15,7 +15,7 @@ set exampleBinary "1110000011100000111000001110000011100000111000001110000011100
 ........
 ........
 ........
-........
+....OO..
 ........
 ........
 OOOOOOOO
@@ -34,58 +34,61 @@ proc ::epg::visualize {style} {
 
 #------------- SIMULATION
 
+proc ::epg::sim {type} {
+ 
+ if {$type eq "random"} {
+ for {set i 1} {$i < 63} {incr i} { lappend binary [expr int([expr rand() *2])] }
+ regsub -all {\s} $binary "" binary
+ return $binary
+ }
+ if {$type eq "zeroes"} { return [string repeat 0 62] } 
+ if {$type eq "ones"} { return [string repeat 1 62] }
+}
 
-# build a frame with articulatory features specified
-# or random, zeroes, ones. alveolar, palatal, velar, etc.
+# in: binary string
+# out: input with one digit flipped
+# 100% -> must change
+# 0 must not change
+proc ::epg::markovX {in probChange} {
+ if {$probChange > 100 || $probChange < 0} {return "probability range error"}
+}
+
+# in: binary string
+# out: input with one digit flipped
+# index starts at character zero
+proc ::epg::markov {x} {
+ set s [string length $x]
+ set r [expr rand()]
+ set rs [expr {$s * $r}]
+ set p [expr int($rs)]
+ set c [string index $x $p]
+ puts "flip char $c position $p"
+ puts ..$p..
+ # not accepting $p as a valid index for the character, but not erroring
+ if {$c eq 1} {
+  set x [string replace $x $p $p 1]
+ } elseif {$c eq 0} {
+  set x [string replace $x $p $p 0]
+ } else {
+  return "input error"
+ }
+return $x
+}
+
+
+
+### verify and add in other places of articulation
 proc ::epg::frame {features} {
- set blank "aaaaaa000000000000000000000000000000000000000000000000vvvvvvvv"
-
- if {[regexp "velar" $features]} { regsub -all "v" $blank "1" blank }
- if {[regexp "alveolar" $features]} { regsub -all "a" $blank "1" blank }
-
-puts $blank
-
- if {$features eq "zeroes"} {
- return [string repeat 0 62]
- } elseif {$features eq "binary"} {
-   for {set i 1} {$i < 63} {incr i} { lappend binary [expr int([expr rand() *2])] }
-   regsub -all {\s} $binary "" binary
-   return $binary
- } 
-
+ set x "aaaaaa000000000000000000000000000000000000000000000000vvvvvvvv"
+ if {[regexp "velar" $features]} { regsub -all "v" $x "1" x }
+ if {[regexp "alveolar" $features]} { regsub -all "a" $x "1" x }
+ regsub -all {a|v|p|v|l} $x "0" x
+ return $blank 
 }
 
 
 #------------- VALIDATION
 
-
-proc ::epg::validate {type} {
-# printout or binary
- if {$type eq "printout"} {
- } elseif {$type eq "binary"} {
- } else {return -code error "need to pick a type to validate"}
-}
-
-proc ::epg::convert {type input} {
- # binary -> printout
- # printout -> binary
-
-}
-
-
-
-proc ::epg::help {} {
- foreach x [lsort [info procs ::epg::*]] {
-  puts "$x [info args $x]"
- }
-}
-
-
-#
-# ::epg::validateBinary
-# in: one string
-# out: 1 if that string is 62 digits of 1 and 0. otherwise: 0.
-#
 
 proc ::epg::validateBinary {binary} {
  if {[regexp {^[10]{62}$} $binary]} {
@@ -94,6 +97,10 @@ proc ::epg::validateBinary {binary} {
   return 0
  }
 }
+
+
+
+
 
 #------------ CONVERSION
 
@@ -138,6 +145,16 @@ proc ::epg::centerOfGravity {area} {
 # global, anterior, posterior, more?
 }
 
+
+#------------ MISCELLANEOUS 
+
+
+proc ::epg::help {} {
+ foreach x [lsort [info procs ::epg::*]] {
+  puts $x
+#  puts "$x [info args $x]"
+ }
+}
 
 #------------ HOUSEKEEPING
 
